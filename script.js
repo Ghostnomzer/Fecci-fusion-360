@@ -251,7 +251,7 @@
         }
       };
 
-      // Amplia a imagem já carregada, sem baixar outra cópia mais pesada.
+      // Miniaturas responsivas ficam leves; a resolução completa só é pedida ao ampliar.
       const openLightbox = (trigger) => {
         if (!lightbox.hidden) return;
 
@@ -263,7 +263,7 @@
 
         lastFocusedTrigger = trigger;
         trigger.setAttribute('aria-expanded', 'true');
-        lightboxImage.src = image.currentSrc || image.src;
+        lightboxImage.src = image.dataset.fullSrc || image.currentSrc || image.src;
         lightboxImage.alt = image.alt;
         lightboxCaption.textContent = caption;
         lightbox.hidden = false;

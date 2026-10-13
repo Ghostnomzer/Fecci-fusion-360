@@ -1614,6 +1614,7 @@ h2 {
 }
 
 .result-photo figcaption {
+  pointer-events: none;
   position: absolute;
   left: 22px;
   bottom: 20px;

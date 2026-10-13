@@ -745,7 +745,7 @@ descartadas. O prazo está em `loadingDeadline`, no início de `model-viewer.js`
 O HTML carrega os arquivos com sufixos como:
 
 ```html
-<link rel="stylesheet" href="style.css?v=37">
+<link rel="stylesheet" href="style.css?v=38">
 <script src="script.js?v=9" defer></script>
 <script type="module" src="model-viewer.js?v=13"></script>
 <script src="assets/js/animations.js?v=6"></script>
@@ -755,7 +755,7 @@ O parâmetro `?v=` ajuda a impedir que o navegador continue usando uma versão a
 
 Após mudar um desses arquivos, aumente seu número:
 
-- `style.css?v=37` → `style.css?v=38`;
+- `style.css?v=38` → `style.css?v=39`;
 - `model-viewer.js?v=13` → `model-viewer.js?v=14`;
 - `script.js?v=9` → `script.js?v=10`;
 - `animations.js?v=6` → `animations.js?v=7`.

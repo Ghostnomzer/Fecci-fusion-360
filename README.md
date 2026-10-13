@@ -46,7 +46,8 @@ Fecci-fusion-360/
     │   └── animations.js      # Animações GSAP, ScrollTrigger e parallax
     ├── fusion.stl             # Modelo 3D exibido no início
     ├── fusion-360-logo.jpg    # Logo do Autodesk Fusion 360
-    ├── maker logo.png         # Logo do Clube Maker
+    ├── maker-logo.svg         # Logo do Clube Maker com recorte transparente
+    ├── maker-logo-source.jpg  # Imagem original da logo em alta resolução
     ├── mentoriamaker.png      # Registro da mentoria
     ├── orientação.jpeg        # Registro da orientação
     ├── previews/              # Miniaturas otimizadas dos documentos
@@ -252,11 +253,23 @@ Não aumente indiscriminadamente a largura da imagem. O contêiner também preci
 
 ### Qualidade das imagens
 
-As quatro fotos maiores têm cópias em `assets/optimized/`, convertidas para WebP
-sem mudar dimensões ou enquadramento. Os originais continuam em `assets/` e
-`assets/participantes/`. A ampliação reutiliza `currentSrc` da foto já carregada,
-inclusive a versão WebP em resolução completa, evitando baixar o original pesado
-ao clicar. Ao trocar uma foto, atualize `src` e informe as dimensões reais.
+O cabeçalho usa `assets/maker-logo.svg`, que incorpora a imagem enviada em
+`assets/maker-logo-source.jpg` sem redesenhar letras, cores ou detalhes. O recorte
+circular esconde o fundo branco externo; o `viewBox` preserva a proporção e as
+margens da logo antiga. Assim, os tamanhos de 85, 65 e 58 px definidos no CSS
+continuam iguais. A imagem JPEG original também é usada nas prévias de
+compartilhamento, que não aceitam SVG em todos os serviços.
+
+As imagens possuem cópias WebP em `assets/optimized/`. As fotos maiores e a capa
+do Borke usam `srcset` e `sizes` para o navegador escolher uma resolução adequada
+ao espaço disponível e à densidade da tela. Os originais continuam em `assets/`
+e `assets/participantes/`, sem mudanças de enquadramento.
+
+Nos registros dos resultados, `data-full-src` indica a imagem de resolução
+completa para a ampliação. Esse arquivo só é solicitado quando o visitante abre
+a foto. Sem esse atributo, a ampliação reutiliza `currentSrc` da imagem já
+carregada. Ao trocar uma foto, atualize `src`, `srcset`, `data-full-src` e informe
+as dimensões reais; ajuste `sizes` se mudar a largura do cartão.
 
 O navegador não consegue recuperar detalhes que não existem no arquivo original. Para manter nitidez:
 
@@ -488,6 +501,12 @@ As regras `html::-webkit-scrollbar...` controlam Chrome, Edge e Safari.
 
 As regras que começam com `@media` são aplicadas apenas em determinadas larguras. Elas reorganizam o menu, as colunas, os cartões e o modelo 3D.
 
+A meta é manter o site confortável para leitura e toque no celular, sem rolagem
+lateral, inclusive em telas pequenas e no modo paisagem. O menu aberto respeita
+a altura disponível e permite rolagem interna. Até 480 px, as referências
+aparecem em uma coluna; os cartões da equipe têm altura definida pelo conteúdo.
+A área do modelo 3D acompanha a largura da tela, entre 280 e 430 px de altura.
+
 Exemplo:
 
 ```css
@@ -703,13 +722,20 @@ Antes de substituir o STL, exporte as letras e o corpo como sólidos separados o
 - `fillLight` suaviza áreas escuras;
 - `renderer.setPixelRatio(...)` controla nitidez e custo de renderização;
 - `antialias: true` suaviza bordas;
-- sombras usam `PCFShadowMap`, com atualização automática preservada para manter o modelo visível.
+- sombras usam `PCFShadowMap`, com atualização automática preservada para manter o modelo visível;
+- no perfil móvel ou com economia de dados, a densidade máxima é de 1,5 e as sombras usam 512 × 512 px; no desktop, os limites são 2 e 1024 × 1024 px;
+- a rotação automática no perfil móvel é limitada a 30 quadros por segundo, enquanto a interação manual continua respondendo diretamente ao toque.
 
 Não use um `pixelRatio` muito alto, pois pode deixar o site lento em celulares.
 
 ### Falha ou demora de conexão
 
-O visualizador tem um prazo de 30 segundos para carregar as dependências e o STL.
+As dependências e o STL só começam a carregar quando o visualizador se aproxima
+da área visível. Sem `IntersectionObserver`, o carregamento começa após a
+primeira pintura. No celular, arraste para os lados para girar o modelo; gestos
+verticais continuam rolando a página e o zoom de página permanece disponível.
+
+O visualizador tem um prazo de 30 segundos a partir do início desse carregamento.
 Se a rede ficar pendurada, ele mostra uma orientação para recarregar a página,
 sem bloquear a leitura ou o menu. Respostas que chegam depois desse prazo são
 descartadas. O prazo está em `loadingDeadline`, no início de `model-viewer.js`.
@@ -719,9 +745,9 @@ descartadas. O prazo está em `loadingDeadline`, no início de `model-viewer.js`
 O HTML carrega os arquivos com sufixos como:
 
 ```html
-<link rel="stylesheet" href="style.css?v=35">
-<script src="script.js?v=8" defer></script>
-<script type="module" src="model-viewer.js?v=12"></script>
+<link rel="stylesheet" href="style.css?v=37">
+<script src="script.js?v=9" defer></script>
+<script type="module" src="model-viewer.js?v=13"></script>
 <script src="assets/js/animations.js?v=6"></script>
 ```
 
@@ -729,9 +755,9 @@ O parâmetro `?v=` ajuda a impedir que o navegador continue usando uma versão a
 
 Após mudar um desses arquivos, aumente seu número:
 
-- `style.css?v=35` → `style.css?v=36`;
-- `model-viewer.js?v=12` → `model-viewer.js?v=13`;
-- `script.js?v=8` → `script.js?v=9`;
+- `style.css?v=37` → `style.css?v=38`;
+- `model-viewer.js?v=13` → `model-viewer.js?v=14`;
+- `script.js?v=9` → `script.js?v=10`;
 - `animations.js?v=6` → `animations.js?v=7`.
 
 O número não altera o nome real do arquivo.
@@ -811,7 +837,7 @@ Checklist antes de publicar:
 O endereço publicado é:
 
 ```text
-https://ryan20014737472.github.io/Fecci-fusion-360/
+https://ghostnomzer.github.io/Fecci-fusion-360/
 ```
 
 Fluxo normal:

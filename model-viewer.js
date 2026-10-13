@@ -56,13 +56,9 @@ if (viewer) {
     // Um pedido de rede pendurado não pode manter o estado de espera para sempre.
     // A rotina de falha passa a encerrar a cena assim que ela estiver disponível.
     let failLoading = showError;
-    loadingDeadline = window.setTimeout(() => {
-      failLoading(new Error('O carregamento do visualizador excedeu 30 segundos.'));
-    }, 30000);
 
     // Importações dinâmicas permitem informar o erro caso a CDN não responda.
-    // A inicialização começa depois da primeira pintura para não disputar
-    // recursos com o conteúdo principal da página.
+    // A inicialização espera o visualizador se aproximar da área visível.
     // O efeito é opcional: falha ou atraso desse módulo não bloqueia o STL.
     const loadScanEffect = () => {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData) {
@@ -88,6 +84,12 @@ if (viewer) {
 
         // Cria e controla todos os recursos necessários para a cena interativa
         const initializeViewer = () => {
+          const compactViewerQuery = window.matchMedia('(max-width: 800px), (pointer: coarse)');
+          const useCompactRendering = () =>
+            compactViewerQuery.matches || Boolean(navigator.connection?.saveData);
+          const getPixelRatio = () =>
+            Math.min(window.devicePixelRatio || 1, useCompactRendering() ? 1.5 : 2);
+
           const scene = new THREE.Scene();
           const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
 
@@ -101,7 +103,7 @@ if (viewer) {
             antialias: true
           });
 
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.setPixelRatio(getPixelRatio());
           renderer.outputColorSpace = THREE.SRGBColorSpace;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
           renderer.toneMappingExposure = 1.15;
@@ -125,13 +127,32 @@ if (viewer) {
           // OrbitControls define touch-action inline; esta regra devolve rolagem vertical
           canvas.style.touchAction = 'pan-y pinch-zoom';
 
+          // No toque, distingue o gesto de girar daquele usado para rolar a página.
+          const touchQuery = window.matchMedia('(pointer: coarse)');
+          const hintText = modelHint?.lastChild;
+          if (hintText?.nodeType === Node.TEXT_NODE) {
+            const desktopHint = hintText.textContent;
+            const updateHint = () => {
+              hintText.textContent = touchQuery.matches
+                ? ' Arraste para os lados para girar · Role na vertical'
+                : desktopHint;
+            };
+            updateHint();
+            if (typeof touchQuery.addEventListener === 'function') {
+              touchQuery.addEventListener('change', updateHint);
+            } else if (typeof touchQuery.addListener === 'function') {
+              touchQuery.addListener(updateHint);
+            }
+          }
+
           // Adiciona iluminação ambiente e luzes direcionais para destacar o relevo
           scene.add(new THREE.HemisphereLight(0xfff2e7, 0x171a1c, 2.2));
 
           const keyLight = new THREE.DirectionalLight(0xffa05c, 4.5);
           keyLight.position.set(4, 6, 5);
           keyLight.castShadow = true;
-          keyLight.shadow.mapSize.set(1024, 1024);
+          const shadowSize = useCompactRendering() ? 512 : 1024;
+          keyLight.shadow.mapSize.set(shadowSize, shadowSize);
           scene.add(keyLight);
 
           const fillLight = new THREE.DirectionalLight(0x91b7ff, 1.15);
@@ -164,7 +185,7 @@ if (viewer) {
           let lastAutoFrameTime = null;
           let modelRadius = 0;
           let modelReady = false;
-          let viewerVisible = true;
+          let viewerVisible = typeof window.IntersectionObserver !== 'function';
           let viewerFailed = false;
           let rotationPausedByUser = false;
           let scanEffect = null;
@@ -215,13 +236,21 @@ if (viewer) {
 
             if (!canAutoRotate()) return;
 
-            const deltaTime =
-              lastAutoFrameTime === null
+            const elapsed = lastAutoFrameTime === null
+              ? Infinity
+              : currentTime - lastAutoFrameTime;
+            const frameInterval = useCompactRendering() ? 1000 / 30 : 0;
+
+            // Limita somente o giro automático; gestos manuais renderizam imediatamente.
+            // O delta inclui os frames pulados para preservar a velocidade de rotação.
+            if (elapsed >= frameInterval - 0.5) {
+              const deltaTime = lastAutoFrameTime === null
                 ? 0
-                : Math.min((currentTime - lastAutoFrameTime) / 1000, 0.1);
-            lastAutoFrameTime = currentTime;
-            controls.update(deltaTime);
-            render();
+                : Math.min(elapsed / 1000, 0.1);
+              lastAutoFrameTime = currentTime;
+              controls.update(deltaTime);
+              render();
+            }
             autoRotationFrame = window.requestAnimationFrame(
               animateAutomaticRotation
             );
@@ -279,7 +308,7 @@ if (viewer) {
               setAutomaticRotation(false);
               scanEffect = scanModule.createModelScan({
                 THREE, mesh, scene, renderer, shadow, render,
-                compact: window.matchMedia('(max-width: 800px), (pointer: coarse)').matches,
+                compact: useCompactRendering(),
                 onComplete: () => finishScan()
               });
               pendingScan = null;
@@ -522,10 +551,18 @@ if (viewer) {
           const resize = () => {
             const width = Math.max(viewer.clientWidth, 1);
             const height = Math.max(viewer.clientHeight, 1);
-            const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+            const pixelRatio = getPixelRatio();
 
             if (renderer.getPixelRatio() !== pixelRatio) {
               renderer.setPixelRatio(pixelRatio);
+            }
+
+            const nextShadowSize = useCompactRendering() ? 512 : 1024;
+            if (keyLight.shadow.mapSize.x !== nextShadowSize) {
+              keyLight.shadow.map?.dispose();
+              keyLight.shadow.map = null;
+              keyLight.shadow.mapSize.set(nextShadowSize, nextShadowSize);
+              renderer.shadowMap.needsUpdate = true;
             }
 
             camera.aspect = width / height;
@@ -978,10 +1015,44 @@ if (viewer) {
       })
       .catch(showError);
 
-    if (typeof window.requestIdleCallback === 'function') {
-      window.requestIdleCallback(loadViewerDependencies, { timeout: 500 });
-    } else {
-      window.setTimeout(loadViewerDependencies, 0);
+    let loadingStarted = false;
+    let loadingObserver = null;
+    const startLoading = () => {
+      if (loadingStarted || loadingFailed) return;
+      loadingStarted = true;
+      loadingObserver?.disconnect();
+      window.removeEventListener('beforeprint', startLoading);
+
+      // O prazo começa com a rede, não enquanto o modelo ainda está longe da tela.
+      loadingDeadline = window.setTimeout(() => {
+        failLoading(new Error('O carregamento do visualizador excedeu 30 segundos.'));
+      }, 30000);
+      loadViewerDependencies();
+    };
+    const loadAfterPaint = () => {
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(startLoading, { timeout: 500 });
+      } else {
+        window.setTimeout(startLoading, 0);
+      }
+    };
+
+    // Antecipa o carregamento um pouco antes da peça entrar na tela.
+    window.addEventListener('beforeprint', startLoading, { once: true });
+    try {
+      if (typeof window.IntersectionObserver === 'function') {
+        loadingObserver = new IntersectionObserver((entries) => {
+          if (entries.some(entry => entry.isIntersecting)) startLoading();
+        }, { rootMargin: '200px 0px', threshold: 0 });
+        loadingObserver.observe(viewer);
+      } else {
+        loadAfterPaint();
+      }
+    } catch (error) {
+      // Sem observação de visibilidade, mantém o carregamento funcional.
+      console.warn('Carregamento por visibilidade indisponível:', error);
+      loadingObserver?.disconnect();
+      loadAfterPaint();
     }
   }
 }

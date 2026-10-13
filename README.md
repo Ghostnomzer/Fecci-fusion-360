@@ -837,7 +837,7 @@ Checklist antes de publicar:
 O endereço publicado é:
 
 ```text
-https://ryan20014737472.github.io/Fecci-fusion-360/
+https://ghostnomzer.github.io/Fecci-fusion-360/
 ```
 
 Fluxo normal:

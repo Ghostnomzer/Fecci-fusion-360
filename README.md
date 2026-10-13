@@ -46,7 +46,8 @@ Fecci-fusion-360/
     │   └── animations.js      # Animações GSAP, ScrollTrigger e parallax
     ├── fusion.stl             # Modelo 3D exibido no início
     ├── fusion-360-logo.jpg    # Logo do Autodesk Fusion 360
-    ├── maker logo.png         # Logo do Clube Maker
+    ├── maker-logo.svg         # Logo do Clube Maker com recorte transparente
+    ├── maker-logo-source.jpg  # Imagem original da logo em alta resolução
     ├── mentoriamaker.png      # Registro da mentoria
     ├── orientação.jpeg        # Registro da orientação
     ├── previews/              # Miniaturas otimizadas dos documentos
@@ -251,6 +252,13 @@ object-position: center;
 Não aumente indiscriminadamente a largura da imagem. O contêiner também precisa respeitar `max-width: 100%` para não criar rolagem lateral.
 
 ### Qualidade das imagens
+
+O cabeçalho usa `assets/maker-logo.svg`, que incorpora a imagem enviada em
+`assets/maker-logo-source.jpg` sem redesenhar letras, cores ou detalhes. O recorte
+circular esconde o fundo branco externo; o `viewBox` preserva a proporção e as
+margens da logo antiga. Assim, os tamanhos de 85, 65 e 58 px definidos no CSS
+continuam iguais. A imagem JPEG original também é usada nas prévias de
+compartilhamento, que não aceitam SVG em todos os serviços.
 
 As imagens possuem cópias WebP em `assets/optimized/`. As fotos maiores e a capa
 do Borke usam `srcset` e `sizes` para o navegador escolher uma resolução adequada

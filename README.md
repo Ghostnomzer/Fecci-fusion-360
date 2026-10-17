@@ -396,6 +396,22 @@ ou sugerir o download:
 
 Se o arquivo tiver espaços ou acentos, o navegador pode convertê-los para códigos como `%20` e `%C3%A7`. A solução mais segura é renomear o arquivo antes de enviá-lo, usando letras minúsculas e hífens.
 
+### Atualizando a capa do material de apoio
+
+A imagem exibida no site é uma prévia separada do PDF, em
+`assets/previews/material-apoio-capa.jpg`. Trocar apenas o PDF não altera essa
+imagem. Depois de atualizar a primeira página do documento, gere a prévia novamente:
+
+```bash
+pdftoppm -f 1 -l 1 -singlefile -scale-to 1432 -jpeg -jpegopt quality=86 "assets/matérial de apoio.pdf" assets/previews/material-apoio-capa
+```
+
+No `index.html`, atualize o valor de `?v=` na imagem da capa e nos três links do
+material (capa, abrir e baixar). Use os primeiros 12 caracteres de
+`git hash-object "assets/matérial de apoio.pdf"` como versão. Isso evita reutilizar
+uma capa ou um PDF antigo guardado no navegador. Se as dimensões da página ou a
+quantidade de páginas mudarem, ajuste também esses dados no HTML.
+
 ## 13. Diário de bordo Borke
 
 A seção possui o ID `diario`. A logo do Clube Maker, no cabeçalho, aponta para `#diario`.

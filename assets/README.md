@@ -36,6 +36,7 @@ Os originais ficam em `imagens/momentos/originais/`:
 | Coordenação de Matemática | `coordenacao-matematica.jpg` |
 | Montagem do banner | `montagem-banner.jpg` |
 | Aula com a ONG | `aula-ong.jpg` |
+| Instalação do Fusion 360 | `instalacao-fusion-360.jpg` |
 
 ## Ao adicionar ou substituir arquivos
 

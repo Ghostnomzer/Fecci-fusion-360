@@ -41,21 +41,34 @@ Fecci-fusion-360/
 ├── script.js                  # Menu, seção ativa e visualizador de imagens
 ├── model-viewer.js            # Cena, câmera, luzes e controles do modelo 3D
 ├── README.md                  # Este manual
+├── RELATORIO-ANIMACOES.md      # Histórico dos ajustes de animação
+├── RELATORIO-DIGITALIZACAO-3D.md # Histórico do efeito de digitalização
 └── assets/
+    ├── README.md              # Guia rápido para organizar novos arquivos
+    ├── documentos/
+    │   ├── artigos/           # Artigo FECCI e referências em PDF
+    │   └── material-de-apoio.pdf
+    ├── imagens/
+    │   ├── capas/             # Capas e prévias de documentos
+    │   │   └── originais/     # Capas originais do artigo e do Borke
+    │   ├── equipe/            # Fotos WebP dos integrantes
+    │   │   └── originais/     # Fotografias originais da equipe
+    │   ├── logos/             # Logo transparente e ícone do Fusion
+    │   │   └── originais/     # Logos de origem e versão antiga preservada
+    │   └── momentos/          # Fotos WebP em diferentes resoluções
+    │       └── originais/     # Fotografias originais dos momentos
     ├── js/
-    │   └── animations.js      # Animações GSAP, ScrollTrigger e parallax
-    ├── fusion.stl             # Modelo 3D exibido no início
-    ├── fusion-360-logo.jpg    # Logo do Autodesk Fusion 360
-    ├── maker-logo.svg         # Logo do Clube Maker com recorte transparente
-    ├── maker-logo-source.jpg  # Imagem original da logo em alta resolução
-    ├── mentoriamaker.png      # Registro da mentoria
-    ├── orientação.jpeg        # Registro da orientação
-    ├── previews/              # Miniaturas otimizadas dos documentos
-    ├── artigos/               # Artigos e PDFs do projeto
-    └── participantes/         # Fotografias da equipe
+    │   ├── animations.js      # Animações GSAP, ScrollTrigger e parallax
+    │   └── model-scan.js      # Efeito de digitalização do modelo
+    └── modelos/
+        └── fusion.stl         # Modelo 3D exibido no início
 ```
 
-Os nomes dentro de `assets` precisam ser exatamente iguais aos usados no HTML. Maiúsculas, minúsculas, espaços, acentos e extensão fazem diferença quando o site está publicado.
+Use nomes em letras minúsculas, sem espaços ou acentos, separados por hífens.
+Os nomes precisam ser exatamente iguais aos usados no HTML e no JavaScript;
+maiúsculas, minúsculas e extensão fazem diferença quando o site está publicado.
+As pastas `originais/` preservam os arquivos de origem; as versões WebP usadas na
+página ficam na pasta da categoria correspondente.
 
 ## 4. Como o `index.html` está organizado
 
@@ -197,11 +210,14 @@ Depois de criar uma seção:
 
 ## 8. Como trabalhar com imagens
 
-### Organização recomendada
+### Organização das imagens
 
-- fotos de integrantes: `assets/participantes/`;
-- PDFs e artigos: `assets/artigos/`;
-- imagens gerais do projeto: diretamente em `assets/` ou em uma subpasta específica.
+- fotos de integrantes: `assets/imagens/equipe/`;
+- fotos dos momentos: `assets/imagens/momentos/`;
+- capas e prévias de documentos: `assets/imagens/capas/`;
+- logos e ícones: `assets/imagens/logos/`;
+- arquivos de origem: na subpasta `originais/` da categoria correspondente;
+- PDFs: `assets/documentos/`, com os artigos em `assets/documentos/artigos/`.
 
 Prefira nomes simples, sem espaço e sem acento:
 
@@ -216,7 +232,7 @@ Isso evita caminhos como `%20`, que representa um espaço em uma URL.
 ### Inserindo uma imagem
 
 ```html
-<img src="assets/nome-da-imagem.jpg" alt="Descrição objetiva da imagem" loading="lazy">
+<img src="assets/imagens/momentos/nome-da-imagem.webp" alt="Descrição objetiva da imagem" loading="lazy">
 ```
 
 - `src` é o caminho do arquivo.
@@ -228,7 +244,7 @@ Isso evita caminhos como `%20`, que representa um espaço em uma URL.
 ```html
 <figure class="result-photo">
   <button class="result-photo-trigger" type="button" data-lightbox-trigger aria-label="Ampliar a foto">
-    <img src="assets/nova-foto.jpg" alt="Descrição do que acontece na foto" width="1600" height="900" loading="lazy" decoding="async">
+    <img src="assets/imagens/momentos/nova-foto-480.webp" srcset="assets/imagens/momentos/nova-foto-480.webp 480w, assets/imagens/momentos/nova-foto-960.webp 960w" sizes="(max-width: 380px) calc(100vw - 79px), (max-width: 800px) calc(86vw - 43px), (max-width: 1050px) calc(86vw - 141px), 435px" data-full-src="assets/imagens/momentos/originais/nova-foto.jpg" alt="Descrição do que acontece na foto" width="1600" height="900" loading="lazy" decoding="async">
   </button>
   <figcaption>Legenda curta da foto.</figcaption>
 </figure>
@@ -253,17 +269,20 @@ Não aumente indiscriminadamente a largura da imagem. O contêiner também preci
 
 ### Qualidade das imagens
 
-O cabeçalho usa `assets/maker-logo.svg`, que incorpora a imagem enviada em
-`assets/maker-logo-source.jpg` sem redesenhar letras, cores ou detalhes. O recorte
+O cabeçalho usa `assets/imagens/logos/clube-maker.svg`, que incorpora a imagem enviada em
+`assets/imagens/logos/originais/clube-maker.jpg` sem redesenhar letras, cores ou detalhes. O recorte
 circular esconde o fundo branco externo; o `viewBox` preserva a proporção e as
 margens da logo antiga. Assim, os tamanhos de 85, 65 e 58 px definidos no CSS
 continuam iguais. A imagem JPEG original também é usada nas prévias de
 compartilhamento, que não aceitam SVG em todos os serviços.
 
-As imagens possuem cópias WebP em `assets/optimized/`. As fotos maiores e a capa
+As imagens possuem cópias WebP nas pastas `assets/imagens/momentos/`,
+`assets/imagens/equipe/` e `assets/imagens/capas/`. As fotos maiores e a capa
 do Borke usam `srcset` e `sizes` para o navegador escolher uma resolução adequada
-ao espaço disponível e à densidade da tela. Os originais continuam em `assets/`
-e `assets/participantes/`, sem mudanças de enquadramento.
+ao espaço disponível e à densidade da tela. Os arquivos de origem permanecem na
+subpasta `originais/` de cada categoria. Os sufixos `-480` e `-960`, por exemplo,
+indicam a largura em pixels de cada versão. Arquivos WebP sem esse sufixo mantêm
+a resolução completa.
 
 Nos registros dos resultados, `data-full-src` indica a imagem de resolução
 completa para a ampliação. Esse arquivo só é solicitado quando o visitante abre
@@ -281,7 +300,8 @@ O navegador não consegue recuperar detalhes que não existem no arquivo origina
 
 ## 9. Como adicionar um participante
 
-Coloque a foto em `assets/participantes/` e copie um cartão existente dentro de `.participant-list`.
+Guarde a foto de origem em `assets/imagens/equipe/originais/`, crie a versão WebP
+em `assets/imagens/equipe/` e copie um cartão existente dentro de `.participant-list`.
 
 Modelo:
 
@@ -289,7 +309,7 @@ Modelo:
 <!-- Participante do projeto -->
 <article class="participant-card participant-card-left" data-participant-number="04">
   <figure class="participant-photo">
-    <img src="assets/participantes/nome.jpg" alt="Foto do participante Nome Completo" width="1200" height="1400" loading="lazy" decoding="async">
+    <img src="assets/imagens/equipe/nome.webp" alt="Foto do participante Nome Completo" width="1200" height="1400" loading="lazy" decoding="async">
   </figure>
   <div class="participant-info">
     <span>PARTICIPANTE 04</span>
@@ -328,7 +348,7 @@ Dentro de `.result-grid`, copie um dos cartões horizontais:
 <article class="result-card result-card-featured result-card-light reveal">
   <figure class="result-photo">
     <button class="result-photo-trigger" type="button" data-lightbox-trigger aria-label="Ampliar o registro">
-      <img src="assets/registro.jpg" alt="Descrição acessível do registro" width="1600" height="900" loading="lazy" decoding="async">
+      <img src="assets/imagens/momentos/registro-480.webp" srcset="assets/imagens/momentos/registro-480.webp 480w, assets/imagens/momentos/registro-960.webp 960w" sizes="(max-width: 380px) calc(100vw - 79px), (max-width: 800px) calc(86vw - 43px), (max-width: 1050px) calc(86vw - 141px), 435px" data-full-src="assets/imagens/momentos/originais/registro.jpg" alt="Descrição acessível do registro" width="1600" height="900" loading="lazy" decoding="async">
     </button>
     <figcaption>Legenda visível na imagem.</figcaption>
   </figure>
@@ -346,14 +366,14 @@ Use `result-card-light` para a versão clara e `result-card-accent` para a vers�
 
 ### PDF na fundamentação teórica
 
-1. envie o PDF para `assets/artigos/`;
+1. envie o PDF para `assets/documentos/artigos/`;
 2. copie um `.article-card` existente;
 3. atualize número, título, autores, ano, resumo e caminho do botão.
 
 Exemplo de botão:
 
 ```html
-<a class="article-link" href="assets/artigos/artigo.pdf" target="_blank" rel="noopener noreferrer">
+<a class="article-link" href="assets/documentos/artigos/artigo.pdf" target="_blank" rel="noopener noreferrer">
   Acessar PDF <span aria-hidden="true">↗</span>
 </a>
 ```
@@ -367,7 +387,7 @@ Na seção `#referencias`, acrescente uma `.reference-row`:
   <span>[04]</span>
   <div>
     <h3>
-      <a class="reference-title-link" href="assets/artigos/artigo.pdf" target="_blank" rel="noopener noreferrer">
+      <a class="reference-title-link" href="assets/documentos/artigos/artigo.pdf" target="_blank" rel="noopener noreferrer">
         Título do artigo
       </a>
     </h3>
@@ -382,16 +402,17 @@ Links externos devem usar `target="_blank"` e `rel="noopener noreferrer"`.
 
 ## 12. Como alterar ou adicionar PDFs
 
-Os PDFs são arquivos comuns dentro de `assets`. Um link pode abrir o documento:
+Os PDFs ficam em `assets/documentos/`, com os artigos na subpasta `artigos/`.
+Um link pode abrir o documento:
 
 ```html
-<a href="assets/documento.pdf" target="_blank" rel="noopener noreferrer">Abrir PDF</a>
+<a href="assets/documentos/documento.pdf" target="_blank" rel="noopener noreferrer">Abrir PDF</a>
 ```
 
 ou sugerir o download:
 
 ```html
-<a href="assets/documento.pdf" download="nome-amigavel.pdf">Baixar PDF</a>
+<a href="assets/documentos/documento.pdf" download="nome-amigavel.pdf">Baixar PDF</a>
 ```
 
 Se o arquivo tiver espaços ou acentos, o navegador pode convertê-los para códigos como `%20` e `%C3%A7`. A solução mais segura é renomear o arquivo antes de enviá-lo, usando letras minúsculas e hífens.
@@ -399,16 +420,16 @@ Se o arquivo tiver espaços ou acentos, o navegador pode convertê-los para cód
 ### Atualizando a capa do material de apoio
 
 A imagem exibida no site é uma prévia separada do PDF, em
-`assets/previews/material-apoio-capa.jpg`. Trocar apenas o PDF não altera essa
+`assets/imagens/capas/material-de-apoio.jpg`. Trocar apenas o PDF não altera essa
 imagem. Depois de atualizar a primeira página do documento, gere a prévia novamente:
 
 ```bash
-pdftoppm -f 1 -l 1 -singlefile -scale-to 1432 -jpeg -jpegopt quality=86 "assets/matérial de apoio.pdf" assets/previews/material-apoio-capa
+pdftoppm -f 1 -l 1 -singlefile -scale-to 1432 -jpeg -jpegopt quality=86 assets/documentos/material-de-apoio.pdf assets/imagens/capas/material-de-apoio
 ```
 
 No `index.html`, atualize o valor de `?v=` na imagem da capa e nos três links do
 material (capa, abrir e baixar). Use os primeiros 12 caracteres de
-`git hash-object "assets/matérial de apoio.pdf"` como versão. Isso evita reutilizar
+`git hash-object "assets/documentos/material-de-apoio.pdf"` como versão. Isso evita reutilizar
 uma capa ou um PDF antigo guardado no navegador. Se as dimensões da página ou a
 quantidade de páginas mudarem, ajuste também esses dados no HTML.
 
@@ -428,7 +449,7 @@ A linha do tempo resumida fica em `.journal-timeline`. Como o diário ainda não
 
 Quando o diário estiver finalizado como PDF:
 
-1. envie o arquivo para `assets/` ou `assets/artigos/`;
+1. envie o arquivo para `assets/documentos/borke.pdf`;
 2. troque o link externo pelo caminho local do PDF;
 3. mude o texto `EM PRODUÇÃO` para `DISPONÍVEL`;
 4. atualize a descrição para indicar que o documento está concluído;
@@ -653,10 +674,13 @@ interface e dos textos, não do canvas 3D. Ao editar `model-scan.js`, aumente se
 ### Arquivo carregado
 
 ```js
-loader.load('assets/fusion.stl', ...)
+loader.load(new URL('./assets/modelos/fusion.stl', import.meta.url).href, ...)
 ```
 
-Para substituir a peça sem alterar o código, mantenha o novo arquivo com o nome `fusion.stl`. Para usar outro nome, atualize esse caminho.
+Para substituir a peça sem alterar o código, mantenha o novo arquivo em
+`assets/modelos/fusion.stl`. Para usar outro nome, atualize esse caminho em
+`model-viewer.js`. A URL é resolvida a partir do módulo, inclusive quando o site
+é publicado dentro de uma subpasta no GitHub Pages.
 
 ### Câmera e posição inicial
 
@@ -763,7 +787,7 @@ O HTML carrega os arquivos com sufixos como:
 ```html
 <link rel="stylesheet" href="style.css?v=38">
 <script src="script.js?v=9" defer></script>
-<script type="module" src="model-viewer.js?v=13"></script>
+<script type="module" src="model-viewer.js?v=14"></script>
 <script src="assets/js/animations.js?v=6"></script>
 ```
 
@@ -772,7 +796,7 @@ O parâmetro `?v=` ajuda a impedir que o navegador continue usando uma versão a
 Após mudar um desses arquivos, aumente seu número:
 
 - `style.css?v=38` → `style.css?v=39`;
-- `model-viewer.js?v=13` → `model-viewer.js?v=14`;
+- `model-viewer.js?v=14` → `model-viewer.js?v=15`;
 - `script.js?v=9` → `script.js?v=10`;
 - `animations.js?v=6` → `animations.js?v=7`.
 
@@ -914,7 +938,7 @@ Se a publicação deixar de funcionar, confira no GitHub:
 ### O modelo 3D não aparece
 
 - use um servidor local em vez de `file://`;
-- confirme que `assets/fusion.stl` existe;
+- confirme que `assets/modelos/fusion.stl` existe;
 - verifique a conexão com `cdn.jsdelivr.net`;
 - abra o console do navegador;
 - confirme que o navegador oferece suporte a WebGL;

@@ -701,7 +701,7 @@ if (viewer) {
           const loader = new STLLoader();
 
           loader.load(
-            'assets/fusion.stl',
+            new URL('./assets/modelos/fusion.stl', import.meta.url).href,
             (geometry) => {
               // Uma resposta tardia não deve desfazer um erro/timeout já informado.
               if (loadingFailed || viewerFailed) {

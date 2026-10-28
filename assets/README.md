@@ -38,6 +38,7 @@ Os originais ficam em `imagens/momentos/originais/`:
 | Aula com a ONG | `aula-ong.jpg` |
 | Visita à UFPR | `fecci-ufpr.jpg` |
 | Instalação do Fusion 360 | `instalacao-fusion-360.jpg` |
+| Primeira turma | `primeira-turma.jpg` |
 
 ## Ao adicionar ou substituir arquivos
 

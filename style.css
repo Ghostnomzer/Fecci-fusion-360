@@ -1301,9 +1301,17 @@ h2 {
 }
 
 .material-route-panel {
+  grid-template-columns: minmax(120px, 0.55fr) minmax(200px, 1fr);
+  gap: 20px;
+}
+
+.material-showcase {
   grid-column: 1 / -1;
-  grid-template-columns: minmax(150px, 0.52fr) minmax(340px, 1.45fr) minmax(240px, 1fr);
-  gap: clamp(20px, 3vw, 38px);
+  width: min(1440px, calc(100vw - var(--content-offset) - 40px));
+  display: grid;
+  grid-template-columns: minmax(380px, 0.85fr) minmax(580px, 1.65fr);
+  gap: clamp(40px, 5vw, 80px);
+  align-items: center;
 }
 
 .material-panel::after {
@@ -1345,18 +1353,16 @@ h2 {
   z-index: 1;
   width: 100%;
   min-width: 0;
-  min-height: 270px;
-  height: 330px;
+  min-height: 360px;
+  height: 580px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-small);
+  border-radius: 28px;
   background: radial-gradient(circle at 50% 44%, rgba(255, 106, 33, 0.11), #0b0d0f 72%);
 }
 
 .material-model-canvas {
   width: 100%;
   height: 100%;
-  min-height: 270px;
   height: 100%;
   display: block;
   cursor: grab;
@@ -2464,6 +2470,12 @@ h2 {
     gap: 32px;
   }
 
+  .material-showcase {
+    width: 100%;
+    grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.15fr);
+    gap: 28px;
+  }
+
   .article-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3006,6 +3018,11 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .material-showcase {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
   .material-preview {
     width: min(100%, 250px);
     justify-self: center;
@@ -3013,6 +3030,8 @@ h2 {
 
   .material-model-preview {
     width: min(100%, 560px);
+    min-height: 320px;
+    height: 420px;
     justify-self: center;
   }
 

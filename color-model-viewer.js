@@ -14,7 +14,6 @@ if (viewer) {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 100);
-    camera.position.set(2.4, 1.8, 3.2);
 
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -33,17 +32,21 @@ if (viewer) {
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
     controls.enablePan = false;
-    controls.minDistance = 1.2;
-    controls.maxDistance = 7;
     controls.target.set(0, 0, 0);
 
     let model;
+    let fitDistance = 0;
     const resize = () => {
       const { width, height } = viewer.getBoundingClientRect();
       if (!width || !height) return;
       camera.aspect = width / height;
+      if (fitDistance) {
+        const direction = new THREE.Vector3(0.55, 0.38, 1.4).normalize();
+        camera.position.copy(direction.multiplyScalar(fitDistance));
+      }
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
+      controls.update();
     };
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(viewer);
@@ -72,8 +75,11 @@ if (viewer) {
       throw new Error('O modelo não possui dimensões válidas.');
     }
 
-    model.position.sub(center);
-    model.scale.setScalar(1.7 / largest);
+    const modelScale = 1.7 / largest;
+    // A posição do objeto não recebe o scale dos vértices; escale também
+    // o deslocamento para manter o centro do modelo na origem.
+    model.position.copy(center).multiplyScalar(-modelScale);
+    model.scale.setScalar(modelScale);
     model.traverse((part) => {
       if (!part.isMesh) return;
       part.geometry.computeVertexNormals();
@@ -83,6 +89,21 @@ if (viewer) {
       });
     });
     scene.add(model);
+
+    // Ajusta a câmera ao volume inteiro do modelo, inclusive em telas largas.
+    const fittedBounds = new THREE.Box3().setFromObject(model);
+    const sphere = fittedBounds.getBoundingSphere(new THREE.Sphere());
+    const verticalFov = THREE.MathUtils.degToRad(camera.fov);
+    const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * camera.aspect);
+    fitDistance = Math.max(
+      sphere.radius / Math.sin(verticalFov / 2),
+      sphere.radius / Math.sin(horizontalFov / 2)
+    ) * 1.22;
+    camera.near = Math.max(fitDistance / 100, 0.01);
+    camera.far = fitDistance * 12;
+    controls.minDistance = sphere.radius * 1.05;
+    controls.maxDistance = fitDistance * 5;
+    resize();
 
     controls.update();
     viewer.classList.add('is-loaded');

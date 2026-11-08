@@ -44,11 +44,20 @@ if (viewer) {
       if (modelRadius) {
         const verticalFov = THREE.MathUtils.degToRad(camera.fov);
         const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * camera.aspect);
-        const fitDistance = Math.max(
-          modelRadius / Math.sin(verticalFov / 2),
-          modelRadius / Math.sin(horizontalFov / 2)
-        ) * 1.8;
         const direction = new THREE.Vector3(0.55, 0.38, 1.4).normalize();
+        const right = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
+        const up = new THREE.Vector3(0, 1, 0).addScaledVector(direction, -direction.y).normalize();
+        const halfSize = fittedSize.clone().multiplyScalar(0.5);
+        const halfWidth = Math.abs(right.x) * halfSize.x
+          + Math.abs(right.y) * halfSize.y
+          + Math.abs(right.z) * halfSize.z;
+        const halfHeight = Math.abs(up.x) * halfSize.x
+          + Math.abs(up.y) * halfSize.y
+          + Math.abs(up.z) * halfSize.z;
+        const fitDistance = Math.max(
+          halfHeight / Math.tan(verticalFov / 2),
+          halfWidth / Math.tan(horizontalFov / 2)
+        ) * 1.16;
         camera.position.copy(modelCenter).addScaledVector(direction, fitDistance);
         camera.near = Math.max(fitDistance / 100, 0.01);
         camera.far = fitDistance * 12;
@@ -100,6 +109,7 @@ if (viewer) {
     // Ajusta a câmera ao volume inteiro do modelo, inclusive em telas largas.
     const fittedBounds = new THREE.Box3().setFromObject(model);
     const sphere = fittedBounds.getBoundingSphere(new THREE.Sphere());
+    const fittedSize = fittedBounds.getSize(new THREE.Vector3());
     modelRadius = sphere.radius;
     // Usa o centro real depois da escala para incluir todos os corpos do OBJ.
     modelCenter.copy(sphere.center);
@@ -132,3 +142,4 @@ if (viewer) {
     viewer.classList.add('is-error');
   }
 }
+

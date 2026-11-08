@@ -405,10 +405,12 @@
           </div>
         </article>
         <article class="material-panel">
-          <!-- Roteiro completo usado para conduzir as atividades do curso -->
-          <a class="material-preview" href="assets/documentos/roteiro-do-curso-fusion-360.pdf?v=49300d6ce41e" target="_blank" rel="noopener noreferrer" aria-label="Abrir o roteiro completo do curso em PDF">
-            <img src="assets/imagens/capas/roteiro-do-curso-fusion-360.jpg?v=49300d6ce41e" alt="Capa do roteiro do curso de Fusion 360" width="1013" height="1432" loading="lazy" decoding="async">
-          </a>
+          <!-- Visualizador interativo do modelo colorido exportado do Fusion -->
+          <div class="material-model-preview" data-color-model-viewer role="group" aria-label="Modelo 3D colorido do Fusion 360">
+            <canvas class="material-model-canvas" aria-hidden="true"></canvas>
+            <span class="material-model-loading">Carregando modelo 3D…</span>
+            <span class="material-model-hint">Arraste para girar · role para ampliar</span>
+          </div>
           <div class="material-panel-copy">
             <div class="document-meta" aria-label="Informações do roteiro">
               <span>ROTEIRO DO CURSO</span>
@@ -817,8 +819,9 @@
   </script>
   <!-- A navegação funciona antes do visualizador e das bibliotecas de animação. -->
   <script src="script.js?v=9" defer></script>
-  <!-- Controla o carregamento e a interação com o modelo STL -->
+  <!-- Controla o carregamento e a interação com os modelos 3D -->
   <script type="module" src="model-viewer.js?v=14"></script>
+  <script type="module" src="color-model-viewer.js?v=1"></script>
   <!-- Bibliotecas leves utilizadas exclusivamente nas animações progressivas -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>

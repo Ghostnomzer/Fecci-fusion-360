@@ -35,14 +35,24 @@ if (viewer) {
     controls.target.set(0, 0, 0);
 
     let model;
-    let fitDistance = 0;
+    let modelRadius = 0;
+    const modelCenter = new THREE.Vector3();
     const resize = () => {
       const { width, height } = viewer.getBoundingClientRect();
       if (!width || !height) return;
       camera.aspect = width / height;
-      if (fitDistance) {
+      if (modelRadius) {
+        const verticalFov = THREE.MathUtils.degToRad(camera.fov);
+        const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * camera.aspect);
+        const fitDistance = Math.max(
+          modelRadius / Math.sin(verticalFov / 2),
+          modelRadius / Math.sin(horizontalFov / 2)
+        ) * 1.55;
         const direction = new THREE.Vector3(0.55, 0.38, 1.4).normalize();
-        camera.position.copy(direction.multiplyScalar(fitDistance));
+        camera.position.copy(modelCenter).addScaledVector(direction, fitDistance);
+        camera.near = Math.max(fitDistance / 100, 0.01);
+        camera.far = fitDistance * 12;
+        controls.target.copy(modelCenter);
       }
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
@@ -93,16 +103,10 @@ if (viewer) {
     // Ajusta a câmera ao volume inteiro do modelo, inclusive em telas largas.
     const fittedBounds = new THREE.Box3().setFromObject(model);
     const sphere = fittedBounds.getBoundingSphere(new THREE.Sphere());
-    const verticalFov = THREE.MathUtils.degToRad(camera.fov);
-    const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * camera.aspect);
-    fitDistance = Math.max(
-      sphere.radius / Math.sin(verticalFov / 2),
-      sphere.radius / Math.sin(horizontalFov / 2)
-    ) * 1.22;
-    camera.near = Math.max(fitDistance / 100, 0.01);
-    camera.far = fitDistance * 12;
+    modelRadius = sphere.radius;
+    modelCenter.copy(sphere.center);
     controls.minDistance = sphere.radius * 1.05;
-    controls.maxDistance = fitDistance * 5;
+    controls.maxDistance = sphere.radius * 12;
     resize();
 
     controls.update();

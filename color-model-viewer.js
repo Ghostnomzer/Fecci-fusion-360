@@ -47,7 +47,7 @@ if (viewer) {
         const fitDistance = Math.max(
           modelRadius / Math.sin(verticalFov / 2),
           modelRadius / Math.sin(horizontalFov / 2)
-        ) * 1.55;
+        ) * 1.8;
         const direction = new THREE.Vector3(0.55, 0.38, 1.4).normalize();
         camera.position.copy(modelCenter).addScaledVector(direction, fitDistance);
         camera.near = Math.max(fitDistance / 100, 0.01);
@@ -86,9 +86,6 @@ if (viewer) {
     }
 
     const modelScale = 1.7 / largest;
-    // A posição do objeto não recebe o scale dos vértices; escale também
-    // o deslocamento para manter o centro do modelo na origem.
-    model.position.copy(center).multiplyScalar(-modelScale);
     model.scale.setScalar(modelScale);
     model.traverse((part) => {
       if (!part.isMesh) return;
@@ -104,6 +101,7 @@ if (viewer) {
     const fittedBounds = new THREE.Box3().setFromObject(model);
     const sphere = fittedBounds.getBoundingSphere(new THREE.Sphere());
     modelRadius = sphere.radius;
+    // Usa o centro real depois da escala para incluir todos os corpos do OBJ.
     modelCenter.copy(sphere.center);
     controls.minDistance = sphere.radius * 1.05;
     controls.maxDistance = sphere.radius * 12;

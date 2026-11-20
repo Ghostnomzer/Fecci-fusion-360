@@ -34,43 +34,6 @@ if (viewer) {
     controls.enablePan = false;
     controls.target.set(0, 0, 0);
 
-    let model;
-    let modelRadius = 0;
-    const modelCenter = new THREE.Vector3();
-    const resize = () => {
-      const { width, height } = viewer.getBoundingClientRect();
-      if (!width || !height) return;
-      camera.aspect = width / height;
-      if (modelRadius) {
-        const verticalFov = THREE.MathUtils.degToRad(camera.fov);
-        const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * camera.aspect);
-        const direction = new THREE.Vector3(0.55, 0.38, 1.4).normalize();
-        const right = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
-        const up = new THREE.Vector3(0, 1, 0).addScaledVector(direction, -direction.y).normalize();
-        const halfSize = fittedSize.clone().multiplyScalar(0.5);
-        const halfWidth = Math.abs(right.x) * halfSize.x
-          + Math.abs(right.y) * halfSize.y
-          + Math.abs(right.z) * halfSize.z;
-        const halfHeight = Math.abs(up.x) * halfSize.x
-          + Math.abs(up.y) * halfSize.y
-          + Math.abs(up.z) * halfSize.z;
-        const fitDistance = Math.max(
-          halfHeight / Math.tan(verticalFov / 2),
-          halfWidth / Math.tan(horizontalFov / 2)
-        ) * 1.16;
-        camera.position.copy(modelCenter).addScaledVector(direction, fitDistance);
-        camera.near = Math.max(fitDistance / 100, 0.01);
-        camera.far = fitDistance * 12;
-        controls.target.copy(modelCenter);
-      }
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height, false);
-      controls.update();
-    };
-    const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(viewer);
-    resize();
-
     const base = new URL('./assets/modelos/', import.meta.url);
     const materialLoader = new MTLLoader();
     materialLoader.setPath(base.href);
@@ -82,8 +45,8 @@ if (viewer) {
     const objectLoader = new OBJLoader();
     objectLoader.setMaterials(materials);
     objectLoader.setPath(base.href);
-    model = await new Promise((resolve, reject) => {
-      objectLoader.load('COLORIDO.obj', resolve, undefined, reject);
+    const model = await new Promise((resolve, reject) => {
+      objectLoader.load('COLORIDO.obj?v=2', resolve, undefined, reject);
     });
 
     const bounds = new THREE.Box3().setFromObject(model);
@@ -98,7 +61,6 @@ if (viewer) {
     model.scale.setScalar(modelScale);
     model.traverse((part) => {
       if (!part.isMesh) return;
-      part.geometry.computeVertexNormals();
       const faceMaterials = Array.isArray(part.material) ? part.material : [part.material];
       faceMaterials.forEach((material) => {
         material.side = THREE.DoubleSide;
@@ -106,18 +68,47 @@ if (viewer) {
     });
     scene.add(model);
 
-    // Ajusta a câmera ao volume inteiro do modelo, inclusive em telas largas.
-    const fittedBounds = new THREE.Box3().setFromObject(model);
-    const sphere = fittedBounds.getBoundingSphere(new THREE.Sphere());
-    const fittedSize = fittedBounds.getSize(new THREE.Vector3());
-    modelRadius = sphere.radius;
-    // Usa o centro real depois da escala para incluir todos os corpos do OBJ.
-    modelCenter.copy(sphere.center);
-    controls.minDistance = sphere.radius * 1.05;
-    controls.maxDistance = sphere.radius * 12;
+    const target = center.multiplyScalar(modelScale);
+    const halfSize = size.multiplyScalar(modelScale / 2);
+    const radius = halfSize.length();
+    const direction = new THREE.Vector3(0.55, 0.38, 1.4).normalize();
+    const right = new THREE.Vector3().crossVectors(camera.up, direction).normalize();
+    const up = new THREE.Vector3().crossVectors(direction, right);
+    const corners = [];
+    for (const x of [-halfSize.x, halfSize.x]) {
+      for (const y of [-halfSize.y, halfSize.y]) {
+        for (const z of [-halfSize.z, halfSize.z]) {
+          corners.push(new THREE.Vector3(x, y, z));
+        }
+      }
+    }
+    controls.target.copy(target);
+    controls.minDistance = radius * 1.05;
+
+    const resize = () => {
+      const { clientWidth: width, clientHeight: height } = viewer;
+      if (!width || !height) return;
+
+      camera.aspect = width / height;
+      // Inclui a profundidade de cada canto na perspectiva e deixa margem.
+      const verticalSlope = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.86;
+      const horizontalSlope = verticalSlope * camera.aspect;
+      const distance = Math.max(controls.minDistance, ...corners.map(corner => (
+        corner.dot(direction) + Math.max(
+          Math.abs(corner.dot(right)) / horizontalSlope,
+          Math.abs(corner.dot(up)) / verticalSlope
+        )
+      )));
+      controls.maxDistance = Math.max(radius * 12, distance * 2);
+      camera.position.copy(target).addScaledVector(direction, distance);
+      camera.far = controls.maxDistance + radius;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height, false);
+      controls.update();
+    };
+    new ResizeObserver(resize).observe(viewer);
     resize();
 
-    controls.update();
     viewer.classList.add('is-loaded');
     viewer.setAttribute('tabindex', '0');
 
@@ -142,4 +133,3 @@ if (viewer) {
     viewer.classList.add('is-error');
   }
 }
-

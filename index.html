@@ -28,7 +28,7 @@
   <meta name="twitter:image:alt" content="Logo do Clube Maker do projeto FECCI Fusion 360">
   <title>Projeto FECCI | Competências STEAM com Fusion 360</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="style.css?v=38">
+  <link rel="stylesheet" href="style.css?v=39">
 </head>
 <body>
   <!-- Atalho de teclado para alcançar diretamente o conteúdo principal -->
@@ -430,10 +430,11 @@
           </article>
           <!-- Modelo ocupa a área livre à direita do cartão do roteiro -->
           <div class="material-model-stage">
-            <div class="material-model-preview" data-color-model-viewer role="group" aria-label="Modelo 3D colorido do Fusion 360">
+            <div class="material-model-preview" data-color-model-viewer role="group" aria-label="Modelo 3D colorido do Fusion 360" aria-describedby="color-model-instructions">
               <canvas class="material-model-canvas" aria-hidden="true"></canvas>
-              <span class="material-model-loading">Carregando modelo 3D…</span>
-              <span class="material-model-hint">Arraste para girar · role para ampliar</span>
+              <span class="material-model-loading" role="status">Carregando modelo 3D…</span>
+              <span class="material-model-hint" id="color-model-instructions">Arraste ou use as setas para girar</span>
+              <button class="model-motion-toggle" type="button" aria-pressed="false" hidden>Pausar rotação</button>
             </div>
           </div>
         </div>
@@ -829,7 +830,7 @@
   <script src="script.js?v=9" defer></script>
   <!-- Controla o carregamento e a interação com os modelos 3D -->
   <script type="module" src="model-viewer.js?v=14"></script>
-  <script type="module" src="color-model-viewer.js?v=5"></script>
+  <script type="module" src="color-model-viewer.js?v=6"></script>
   <!-- Bibliotecas leves utilizadas exclusivamente nas animações progressivas -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>

@@ -485,7 +485,8 @@ h1 em {
   cursor: grabbing;
 }
 
-.model-viewer:focus-visible {
+.model-viewer:focus-visible,
+.material-model-preview:focus-visible {
   outline: 2px solid var(--orange);
   outline-offset: -8px;
   border-radius: 24px;
@@ -1391,6 +1392,9 @@ h2 {
 
 .material-model-hint {
   bottom: 12px;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  white-space: normal;
   opacity: 0;
   transition: opacity 200ms ease;
 }
@@ -3348,6 +3352,7 @@ body.lightbox-open {
   }
 
   .model-hint,
+  .material-model-hint,
   .model-motion-toggle,
   .skip-link,
   .header,

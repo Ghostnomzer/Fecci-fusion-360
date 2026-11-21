@@ -3437,3 +3437,82 @@ body.lightbox-open {
     transform: translateX(-50%);
   }
 }
+
+/* Identidade da oficina: papel de desenho, bancada e superfície de projeção. */
+@media screen {
+  :root {
+    --ink: #112e46;
+    --paper: #edf4f5;
+    --paper-raised: #fff;
+    --orange: #ffac62;
+    --orange-dark: #884011;
+    --muted: #b3c9d5;
+    --line: rgba(192, 219, 236, .25);
+    --surface: #183c55;
+    --radius-card: 16px;
+  }
+  body { font-family: "Segoe UI", "Helvetica Neue", sans-serif; }
+  .header, .header.is-scrolled { background: #112e46; }
+  .hero {
+    background: #edf4f5;
+    color: #112e46;
+    min-height: auto;
+    padding-block: clamp(118px, 10vw, 168px) clamp(32px, 5vw, 76px);
+  }
+  .hero-copy .eyebrow {
+    color: #345c70;
+    font-weight: 600; line-height: 1.4;
+    font-family: inherit;
+    font-size: 15px;
+    letter-spacing: .02em;
+  }
+  .hero h1 {
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    font-size: clamp(52px, 6.2vw, 102px);
+    line-height: .98;
+    letter-spacing: -.073em;
+    margin: 22px 0;
+  }
+  .hero-text { max-width: 44ch; color: #365365; }
+  .hero .button { background: #112e46; color: #fff; border-radius: 24px; }
+  .hero .button:hover { background: #245d76; }
+  .hero .edition { color: #254c61; font: 600 14px/1.5 "Segoe UI", sans-serif; letter-spacing: 0; text-decoration: underline; text-underline-offset: 4px; }
+  .hero-art {
+    border-radius: 4px 48px 4px 4px;
+    background-color: #174f74;
+    background-image: linear-gradient(#ffffff13 1px,transparent 1px),linear-gradient(90deg,#ffffff13 1px,transparent 1px);
+    background-size: 28px 28px;
+    min-height: 0;
+    padding-bottom: 34px;
+  }
+  .hero-art .axis { bottom: 10px; left: 18px; right: auto; color: #ecf6fa; font: 600 13px "Segoe UI", sans-serif; }
+  .model-viewer { width: 100%; height: clamp(300px, 36vw, 560px); background: transparent; }
+  .model-viewer:not(.is-loaded) { background: url("assets/modelos/vista-fusion.webp") center/contain no-repeat; }
+  .model-loading, .model-fallback { color: white; }
+  .fusion-bar { min-height: 80px; }
+  .section-heading { grid-template-columns: 1fr; }
+  .section-heading .section-number { display: none; }
+  .section-heading h2 { font-family: "Trebuchet MS", "Segoe UI", sans-serif; font-size: clamp(34px,4.4vw,68px); max-width: 21ch; margin: 12px 0 clamp(28px,4vw,62px); }
+  .light-section { color: #112e46; }
+  .article-card, .reference-row, .journal-card, .fecci-article-card, .material-panel { background: #193e57; }
+  .course-module { border-top: 3px solid #347891; }
+  .course-module::before, .material-panel::after { display: none; }
+  .course-pilot-note, .project-goal { background: #153d54; }
+  .result-card-light, .participant-card { background-color: #e1edf0; }
+  .result-card-accent, .participant-card-lead { background-color: #18394d; }
+  .article-card p, .journal-copy p, .result-featured-copy p { max-width: 68ch; }
+  :focus-visible { outline: 3px solid #e77d28; outline-offset: 3px; }
+}
+@media screen and (max-width: 900px) {
+  .hero { gap: 28px; }
+  .hero-art { border-top-right-radius: 30px; }
+  .hero .model-viewer { height: clamp(240px,64vw,390px); }
+}
+@media screen and (max-width: 480px) {
+  .hero h1 { font-size: clamp(44px,12vw,57px); }
+  .hero-actions { gap: 14px; }
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  .hero-copy { animation: open-workshop .45s ease-out both; }
+  @keyframes open-workshop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+}

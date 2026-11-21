@@ -101,6 +101,8 @@
           <p class="model-hint" id="model-instructions" hidden><span aria-hidden="true">↻</span> Arraste ou use as setas para girar</p>
           <!-- Permite interromper a rotação automática sem bloquear o giro manual -->
           <button class="model-motion-toggle" type="button" aria-pressed="false" hidden>Pausar rotação</button>
+          <p class="model-hint" data-scan-status role="status" hidden>Digitalizando em 3D…</p>
+          <button class="model-motion-toggle" data-scan-skip type="button" hidden>Concluir digitalização</button>
         </div>
         <span class="axis" aria-hidden="true">Fusion 360 / Modelo da equipe</span>
       </div>
@@ -837,7 +839,7 @@
   <!-- A navegação funciona antes do visualizador e das bibliotecas de animação. -->
   <script src="script.js?v=9" defer></script>
   <!-- Controla o carregamento e a interação com os modelos 3D -->
-  <script type="module" src="model-viewer.js?v=15"></script>
+  <script type="module" src="model-viewer.js?v=16"></script>
   <script type="module" src="color-model-viewer.js?v=6"></script>
   <!-- Bibliotecas leves utilizadas exclusivamente nas animações progressivas -->
   <!-- Centraliza as animações da interface sem misturá-las ao restante da lógica -->

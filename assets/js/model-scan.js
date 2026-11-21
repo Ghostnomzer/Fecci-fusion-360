@@ -1,5 +1,5 @@
 /* Digitalização temporária do STL. Não altera a geometria nem as cores finais. */
-export function createModelScan({ THREE, mesh, scene, renderer, shadow, render, onComplete, compact = false }) {
+export function createModelScan({ THREE, mesh, scene, renderer, render, onComplete, compact = false }) {
   const duration = compact ? 2200 : 2600;
   const particleCount = compact ? 450 : 1200;
   mesh.updateWorldMatrix(true, false);
@@ -53,7 +53,6 @@ export function createModelScan({ THREE, mesh, scene, renderer, shadow, render, 
   // A GPU aproxima os pontos da superfície; o JS atualiza apenas a faixa de varredura.
   const material = new THREE.ShaderMaterial({
     uniforms, transparent: true, depthWrite: false, toneMapped: false,
-    blending: THREE.AdditiveBlending,
     vertexShader: `
       attribute float aSeed;
       uniform float uSweep, uMinY, uHeight, uPixelRatio;
@@ -101,34 +100,20 @@ export function createModelScan({ THREE, mesh, scene, renderer, shadow, render, 
   beam.add(new THREE.LineLoop(lineGeometry, lineMaterial));
   beam.position.set(center.x, bounds.min.y - height * 0.15, center.z);
 
-  const clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), beam.position.y);
-  const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-  const previousPlanes = materials.map(m => m.clippingPlanes);
-  const previousClipping = renderer.localClippingEnabled;
-  const previousShadow = shadow.visible;
-  const previousCastShadow = mesh.castShadow;
   let frame = null, startedAt = null, lastFrame = -Infinity, disposed = false;
   const frameInterval = compact ? 1000 / 30 : 0;
 
-  // dispose é idempotente e restaura também os materiais em interrupções.
+  // Libera somente os recursos da sobreposição, inclusive em interrupções.
   const dispose = () => {
     if (disposed) return;
     disposed = true;
     if (frame !== null) cancelAnimationFrame(frame);
     scene.remove(points, beam);
-    materials.forEach((m, i) => { m.clippingPlanes = previousPlanes[i]; m.needsUpdate = true; });
-    renderer.localClippingEnabled = previousClipping;
-    shadow.visible = previousShadow;
-    mesh.castShadow = previousCastShadow;
     geometry.dispose(); material.dispose(); planeGeometry.dispose(); planeMaterial.dispose();
     lineGeometry.dispose(); lineMaterial.dispose();
   };
 
   try {
-    materials.forEach(m => { m.clippingPlanes = [clip]; m.needsUpdate = true; });
-    renderer.localClippingEnabled = true;
-    shadow.visible = false;
-    mesh.castShadow = false;
     scene.add(points, beam);
   } catch (error) { dispose(); throw error; }
 
@@ -142,10 +127,9 @@ export function createModelScan({ THREE, mesh, scene, renderer, shadow, render, 
       const sweep = -0.15 + progress * 1.35;
       uniforms.uSweep.value = sweep;
       uniforms.uPixelRatio.value = Math.min(renderer.getPixelRatio(), 2);
-      clip.constant = bounds.min.y + height * sweep;
-      beam.position.y = clip.constant;
+      beam.position.y = bounds.min.y + height * sweep;
       beam.visible = sweep >= 0 && sweep <= 1;
-      try { render(true); } catch (error) { console.warn('Digitalização interrompida:', error); onComplete(); return; }
+      try { render(); } catch (error) { console.warn('Digitalização interrompida:', error); onComplete(); return; }
     }
     frame = requestAnimationFrame(tick);
   };

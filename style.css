@@ -2397,6 +2397,30 @@ h2 {
   text-transform: uppercase;
 }
 
+.participant-contacts {
+  margin: 16px 0 0;
+  padding: 6px 0 0;
+  border-top: 1px solid var(--line-light);
+  list-style: none;
+}
+
+.participant-contacts a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  max-width: 100%;
+  color: var(--orange-dark);
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.participant-contacts a:hover {
+  color: #52220d;
+}
+
 /* Rodapé e identificação final do site */
 .site-footer {
   padding: 44px clamp(24px, 5vw, 76px);

@@ -1,137 +1,118 @@
-/* Digitalização temporária do STL. Não altera a geometria nem as cores finais. */
-export function createModelScan({ THREE, mesh, scene, renderer, render, onComplete, compact = false }) {
-  const duration = compact ? 2200 : 2600;
-  const particleCount = compact ? 450 : 1200;
+/* Uma passada de luz sobre a superfície, com uma malha que se apaga atrás dela. */
+export function createModelScan({ THREE, mesh, render, onComplete, compact = false }) {
+  const duration = compact ? 1850 : 2150;
   mesh.updateWorldMatrix(true, false);
   const bounds = new THREE.Box3().setFromObject(mesh);
-  const size = bounds.getSize(new THREE.Vector3());
-  const center = bounds.getCenter(new THREE.Vector3());
-  const height = Math.max(size.y, 0.001);
-  const positions = mesh.geometry.getAttribute('position');
-  const triangles = positions.count / 3;
-  const areas = new Float64Array(triangles);
-  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-  const edge = new THREE.Vector3(), cross = new THREE.Vector3();
-  let totalArea = 0;
-
-  // Distribuição proporcional à área: evita acumular pontos em vértices do STL.
-  for (let i = 0; i < triangles; i++) {
-    a.fromBufferAttribute(positions, i * 3);
-    b.fromBufferAttribute(positions, i * 3 + 1);
-    c.fromBufferAttribute(positions, i * 3 + 2);
-    totalArea += cross.subVectors(c, a).cross(edge.subVectors(b, a)).length() * 0.5;
-    areas[i] = totalArea;
-  }
-  if (!Number.isFinite(totalArea) || totalArea <= 0) throw new Error('Superfície inválida para digitalização.');
-
-  // Semente fixa: a distribuição não pisca nem muda a cada frame.
-  let seed = 360;
-  const random = () => { seed = (1664525 * seed + 1013904223) >>> 0; return seed / 4294967296; };
-  const targets = new Float32Array(particleCount * 3);
-  const seeds = new Float32Array(particleCount);
-  for (let i = 0; i < particleCount; i++) {
-    const area = random() * totalArea;
-    let low = 0, high = triangles - 1;
-    while (low < high) { const middle = (low + high) >>> 1; if (areas[middle] < area) low = middle + 1; else high = middle; }
-    a.fromBufferAttribute(positions, low * 3);
-    b.fromBufferAttribute(positions, low * 3 + 1);
-    c.fromBufferAttribute(positions, low * 3 + 2);
-    const u = Math.sqrt(random()), v = random();
-    a.multiplyScalar(1 - u).addScaledVector(b, u * (1 - v)).addScaledVector(c, u * v);
-    a.applyMatrix4(mesh.matrixWorld).toArray(targets, i * 3);
-    seeds[i] = random();
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(targets, 3));
-  geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 1));
+  const height = Math.max(bounds.max.y - bounds.min.y, 0.001);
   const uniforms = {
-    uSweep: { value: -0.15 }, uMinY: { value: bounds.min.y }, uHeight: { value: height },
-    uPixelRatio: { value: Math.min(renderer.getPixelRatio(), 2) },
-    uColor: { value: new THREE.Color('#ff6a21') },
+    uSweep: { value: -0.06 },
+    uBottom: { value: bounds.min.y },
+    uHeight: { value: height },
+    uLine: { value: new THREE.Color('#ffce9d') },
+    uGrid: { value: new THREE.Color('#53220d') }
   };
-  // A GPU aproxima os pontos da superfície; o JS atualiza apenas a faixa de varredura.
+
   const material = new THREE.ShaderMaterial({
-    uniforms, transparent: true, depthWrite: false, toneMapped: false,
+    uniforms,
+    transparent: true,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -1,
+    toneMapped: false,
     vertexShader: `
-      attribute float aSeed;
-      uniform float uSweep, uMinY, uHeight, uPixelRatio;
-      varying float vAlpha;
+      varying vec3 vWorld;
+      varying vec3 vNormal;
+
       void main() {
-        float layer = (position.y - uMinY) / uHeight;
-        float distanceToScan = layer - uSweep;
-        float gathered = 1.0 - smoothstep(0.0, 0.28, distanceToScan);
-        vec3 drift = vec3(sin(aSeed * 71.0), 0.7 + aSeed * 0.5, cos(aSeed * 53.0)) * uHeight * 0.18;
-        vec3 formed = position + drift * (1.0 - gathered);
-        vAlpha = smoothstep(-0.12, -0.01, distanceToScan) * (1.0 - smoothstep(0.18, 0.35, distanceToScan));
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(formed, 1.0);
-        gl_PointSize = (2.0 + aSeed * 2.0) * uPixelRatio;
+        vec4 world = modelMatrix * vec4(position, 1.0);
+        vWorld = world.xyz;
+        vNormal = normalize(mat3(modelMatrix) * normal);
+        gl_Position = projectionMatrix * viewMatrix * world;
       }
     `,
     fragmentShader: `
-      uniform vec3 uColor;
-      varying float vAlpha;
+      uniform float uSweep, uBottom, uHeight;
+      uniform vec3 uLine, uGrid;
+      varying vec3 vWorld;
+      varying vec3 vNormal;
+
+      float gridLine(vec2 coordinates) {
+        vec2 width = max(fwidth(coordinates), vec2(0.001));
+        vec2 distanceToLine = abs(fract(coordinates + 0.5) - 0.5) / width;
+        return 1.0 - smoothstep(0.32, 1.05, min(distanceToLine.x, distanceToLine.y));
+      }
+
       void main() {
-        float radius = length(gl_PointCoord - vec2(0.5));
-        float alpha = (1.0 - smoothstep(0.18, 0.5, radius)) * vAlpha;
+        float layer = (vWorld.y - uBottom) / uHeight;
+        float distanceBehind = uSweep - layer;
+        float bandWidth = max(fwidth(layer), 0.0035);
+        float line = 1.0 - smoothstep(bandWidth, bandWidth * 2.4, abs(distanceBehind));
+        float halo = 1.0 - smoothstep(0.006, 0.052, abs(distanceBehind));
+        float tail = smoothstep(0.005, 0.045, distanceBehind)
+                   * (1.0 - smoothstep(0.07, 0.23, distanceBehind));
+
+        vec3 coordinates = vWorld * (14.0 / uHeight);
+        vec3 weights = pow(abs(normalize(vNormal)), vec3(4.0));
+        weights /= weights.x + weights.y + weights.z;
+        float grid = dot(weights, vec3(gridLine(coordinates.yz),
+                                      gridLine(coordinates.xz),
+                                      gridLine(coordinates.xy)));
+
+        float lightAlpha = 0.82 * line + 0.21 * halo;
+        float gridAlpha = 0.56 * tail * grid;
+        float alpha = max(lightAlpha, gridAlpha);
         if (alpha < 0.01) discard;
-        gl_FragColor = vec4(uColor, alpha);
+        gl_FragColor = vec4(mix(uGrid, uLine, lightAlpha / max(lightAlpha + gridAlpha, 0.001)), min(alpha, 1.0));
         #include <colorspace_fragment>
       }
-    `,
+    `
   });
-  const points = new THREE.Points(geometry, material);
-  points.frustumCulled = false;
-  points.name = 'fusion-scan-particles';
 
-  // Faixa luminosa plana, sem bloom, textura externa ou pós-processamento.
-  const beam = new THREE.Group();
-  const width = size.x * 1.08, depth = size.z * 1.08;
-  const planeGeometry = new THREE.PlaneGeometry(width, depth);
-  const planeMaterial = new THREE.MeshBasicMaterial({ color: '#ff6a21', transparent: true, opacity: 0.07, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
-  const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-  plane.rotation.x = -Math.PI / 2;
-  beam.add(plane);
-  const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(-width / 2, 0, -depth / 2), new THREE.Vector3(width / 2, 0, -depth / 2),
-    new THREE.Vector3(width / 2, 0, depth / 2), new THREE.Vector3(-width / 2, 0, depth / 2),
-  ]);
-  const lineMaterial = new THREE.LineBasicMaterial({ color: '#ff6a21', transparent: true, opacity: 0.75, depthWrite: false, toneMapped: false });
-  beam.add(new THREE.LineLoop(lineGeometry, lineMaterial));
-  beam.position.set(center.x, bounds.min.y - height * 0.15, center.z);
+  // A sobreposição compartilha a geometria e acompanha o movimento da peça.
+  const overlay = new THREE.Mesh(mesh.geometry, material);
+  mesh.add(overlay);
 
-  let frame = null, startedAt = null, lastFrame = -Infinity, disposed = false;
+  let frame = null;
+  let startTime = null;
+  let lastFrame = -Infinity;
+  let disposed = false;
   const frameInterval = compact ? 1000 / 30 : 0;
 
-  // Libera somente os recursos da sobreposição, inclusive em interrupções.
   const dispose = () => {
     if (disposed) return;
     disposed = true;
     if (frame !== null) cancelAnimationFrame(frame);
-    scene.remove(points, beam);
-    geometry.dispose(); material.dispose(); planeGeometry.dispose(); planeMaterial.dispose();
-    lineGeometry.dispose(); lineMaterial.dispose();
+    overlay.removeFromParent();
+    material.dispose();
   };
-
-  try {
-    scene.add(points, beam);
-  } catch (error) { dispose(); throw error; }
 
   const tick = (now) => {
     if (disposed) return;
-    if (startedAt === null) startedAt = now;
-    const progress = Math.min((now - startedAt) / duration, 1);
-    if (progress >= 1) { onComplete(); return; }
+    if (startTime === null) startTime = now;
+    const progress = (now - startTime) / duration;
+    if (progress >= 1) {
+      onComplete();
+      return;
+    }
     if (now - lastFrame >= frameInterval) {
       lastFrame = now;
-      const sweep = -0.15 + progress * 1.35;
-      uniforms.uSweep.value = sweep;
-      uniforms.uPixelRatio.value = Math.min(renderer.getPixelRatio(), 2);
-      beam.position.y = bounds.min.y + height * sweep;
-      beam.visible = sweep >= 0 && sweep <= 1;
-      try { render(); } catch (error) { console.warn('Digitalização interrompida:', error); onComplete(); return; }
+      uniforms.uSweep.value = -0.06 + progress * 1.3;
+      try {
+        render();
+      } catch (error) {
+        console.warn('Digitalização interrompida:', error);
+        onComplete();
+        return;
+      }
     }
     frame = requestAnimationFrame(tick);
   };
-  return { particleCount, dispose, start() { if (!disposed && frame === null) frame = requestAnimationFrame(tick); } };
+
+  return {
+    dispose,
+    start() {
+      if (!disposed && frame === null) frame = requestAnimationFrame(tick);
+    }
+  };
 }

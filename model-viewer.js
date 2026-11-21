@@ -66,7 +66,7 @@ if (viewer) {
       }
       let timer;
       return Promise.race([
-        import('./assets/js/model-scan.js?v=2').catch(() => null),
+        import('./assets/js/model-scan.js?v=3').catch(() => null),
         new Promise(resolve => { timer = window.setTimeout(() => resolve(null), 1500); })
       ]).finally(() => window.clearTimeout(timer));
     };
@@ -286,7 +286,6 @@ if (viewer) {
             scanEffect = null;
             viewer.classList.remove('is-scanning');
             viewer.dataset.scanState = 'complete';
-            viewer.dataset.scanParticles = '0';
             if (scanStatus) scanStatus.hidden = true;
             const returnFocus = scanSkip === document.activeElement;
             if (scanSkip) scanSkip.hidden = true;
@@ -305,14 +304,13 @@ if (viewer) {
             try {
               setAutomaticRotation(false);
               scanEffect = scanModule.createModelScan({
-                THREE, mesh, scene, renderer, render,
+                THREE, mesh, render,
                 compact: useCompactRendering(),
                 onComplete: () => finishScan()
               });
               pendingScan = null;
               viewer.classList.add('is-scanning');
               viewer.dataset.scanState = 'running';
-              viewer.dataset.scanParticles = String(scanEffect.particleCount);
               if (scanStatus) scanStatus.hidden = false;
               if (scanSkip) scanSkip.hidden = false;
               if (modelHint) modelHint.hidden = true;

@@ -643,29 +643,19 @@ O visualizador é formado por quatro partes:
 
 ### Digitalização laranja de entrada
 
-Uma faixa de luz revela o STL de baixo para cima, acompanhada de partículas
-laranjas que se aproximam de pontos da superfície. O corpo laranja e as letras
-brancas originais reaparecem à medida que a faixa passa. O efeito acontece uma
-vez por carregamento da página, na primeira visualização da peça.
+Uma faixa de luz percorre a superfície do STL de baixo para cima. Uma malha
+temporária acompanha a faixa sobre a peça colorida. O efeito acontece uma vez
+por carregamento da página, na primeira visualização da peça.
 
-Configurações no começo de `assets/js/model-scan.js`:
+A varredura dura 1,85 segundo no modo compacto e 2,15 segundos nas demais telas.
+O modo compacto limita as atualizações a 30 por segundo.
 
-```js
-const duration = compact ? 2200 : 2600;
-const particleCount = compact ? 450 : 1200;
-```
-
-O modo compacto atende telas de até 800 px ou ponteiro de toque e limita as
-atualizações visuais do scanner a 30 por segundo. Não aumente a quantidade de
-partículas sem testar em um aparelho modesto. A cor do scanner é `#ff6a21`;
-alterá-la não muda os materiais finais da peça.
-
-- Arrastar, usar as setas, pressionar Escape ou clicar em **Concluir digitalização** revela a peça imediatamente.
+- Arrastar, usar as setas, pressionar Escape ou clicar em **Pular digitalização** encerra a varredura.
 - A rotação automática começa após a digitalização; o retorno após 5 segundos sem interação permanece.
 - Movimento reduzido, economia de dados (`saveData`) e impressão dispensam o efeito.
 - Ao sair da área visível ou ocultar a aba durante a varredura, ela é concluída e não reinicia ao voltar.
 - O módulo é opcional: se não carregar em até 1,5 segundo, o modelo normal continua disponível.
-- `dispose()` remove partículas, faixa, geometrias, materiais temporários e recorte, restaurando as sombras.
+- `dispose()` remove a sobreposição e libera seu material temporário.
 
 Não coloque código dessa animação em `animations.js`: esse arquivo cuida da
 interface e dos textos, não do canvas 3D. Ao editar `model-scan.js`, aumente seu

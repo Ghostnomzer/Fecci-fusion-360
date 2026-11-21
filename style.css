@@ -83,7 +83,10 @@ main:focus {
   outline: 0;
 }
 
-section[id] {
+section[id],
+#plano-de-aula,
+#roteiro,
+#referencia-evangelista {
   scroll-margin-top: calc(var(--header-height) - 1px);
 }
 
@@ -1189,6 +1192,13 @@ h2 {
   line-height: 1.55;
 }
 
+.course-module dd a,
+.course-pilot-note p a,
+.fecci-article-summary p a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
 .course-summary {
   max-width: var(--content-max);
   margin: 58px 0 0 var(--content-offset);
@@ -1259,6 +1269,25 @@ h2 {
 
 .material-copy .section-lead {
   margin-bottom: 28px;
+}
+
+#plano-de-aula {
+  margin-top: 32px;
+}
+
+#plano-de-aula h3 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+#plano-de-aula p {
+  margin: 0;
+  color: #a7aaab;
+  line-height: 1.7;
+}
+
+#plano-de-aula .material-actions {
+  margin-top: 16px;
 }
 
 .material-topics {
@@ -2039,7 +2068,8 @@ h2 {
   line-height: 1.65;
 }
 
-.journal-timeline-next {
+.journal-timeline .journal-timeline-next {
+  grid-column: 1 / -1;
   background: rgba(255, 106, 33, 0.07);
 }
 
@@ -3022,6 +3052,7 @@ h2 {
   }
 
   .material-showcase {
+    width: 100%;
     grid-template-columns: 1fr;
     gap: 24px;
   }

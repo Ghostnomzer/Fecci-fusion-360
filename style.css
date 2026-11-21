@@ -3487,8 +3487,17 @@ body.lightbox-open {
   }
   .hero-art .axis { bottom: 10px; left: 18px; right: auto; color: #f6f3f0; font: 600 13px "Segoe UI", sans-serif; }
   .model-viewer { width: 100%; height: clamp(300px, 36vw, 560px); background: transparent; }
-  .model-viewer:not(.is-loaded) { background: url("assets/modelos/vista-fusion.webp") center/contain no-repeat; }
+  .model-viewer:not(.is-loaded) { background: url("assets/modelos/vista-fusion.webp?v=2") center/contain no-repeat; }
+  .model-viewer:not(.is-loaded) .model-canvas { visibility: hidden; }
   .model-loading, .model-fallback { color: white; }
+  .model-loading:not(.is-error) {
+    inset: 12px 12px auto auto;
+    padding: 8px 12px;
+    background: #202124;
+    border-radius: 20px;
+    letter-spacing: .04em;
+    text-transform: none;
+  }
   .fusion-bar { min-height: 80px; }
   .section-heading { grid-template-columns: 1fr; }
   .section-heading .section-number { display: none; }
